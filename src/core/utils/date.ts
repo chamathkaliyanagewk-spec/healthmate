@@ -14,3 +14,8 @@ export const daysAgoStr = (n: number) => {
   const day = String(d.getDate()).padStart(2, '0');
   return `${d.getFullYear()}-${month}-${day}`;
 };
+// Turns "2026-10-30" into the first letter of its weekday, like "F"
+export const weekdayLetter = (dateStr: string) => {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return ['S', 'M', 'T', 'W', 'T', 'F', 'S'][new Date(y, m - 1, d).getDay()];
+};
