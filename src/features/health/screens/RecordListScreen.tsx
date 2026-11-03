@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, FlatList, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -76,9 +77,17 @@ export default function RecordListScreen() {
                 <Chip text={`${item.water} ml`} color={colors.waterCard} />
               </View>
             </View>
-            <Pressable onPress={() => confirmDelete(item)} hitSlop={10}>
-              <Ionicons name="trash" size={22} color="#A32D2D" />
-            </Pressable>
+          <View style={styles.actions}>
+  <Pressable
+    onPress={() => router.navigate({ pathname: '/add', params: { id: String(item.id) } })}
+    hitSlop={10}
+  >
+    <Ionicons name="create" size={22} color="#185FA5" />
+  </Pressable>
+  <Pressable onPress={() => confirmDelete(item)} hitSlop={10}>
+    <Ionicons name="trash" size={22} color="#A32D2D" />
+  </Pressable>
+</View>
           </View>
         )}
       />
@@ -114,4 +123,6 @@ const styles = StyleSheet.create({
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
   chip: { borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
   chipText: { fontSize: 12, color: colors.text },
+    actions: { flexDirection: 'row', gap: 16 },
+    
 });

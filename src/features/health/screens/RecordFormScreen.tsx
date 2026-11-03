@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { useState } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '../../../core/theme';
@@ -36,40 +36,72 @@ function Field({
   );
 }
 
+const emptyForm = (): FormInput => ({ date: todayStr(), steps: '', calories: '', water: '' });
+
 export default function RecordFormScreen() {
-  const [form, setForm] = useState<FormInput>({
-    date: todayStr(),
-    steps: '',
-    calories: '',
-    water: '',
-  });
-  const [errors, setErrors] = useState<FormErrors>({});
+  const { id } = useLocalSearchParams<{ id?: string }>(); // set when we press Edit
+  const records = useRecordStore((s) => s.records);
   const add = useRecordStore((s) => s.add);
+  const update = useRecordStore((s) => s.update);
 
-const onSave = async () => {
-  const found = validateRecord(form);
-  setErrors(found);
-  if (Object.keys(found).length > 0) return; // stop if there are errors
+  const editing = id ? records.find((r) => r.id === Number(id)) : undefined;
 
-  try {
-    await add({
+  const [form, setForm] = useState<FormInput>(emptyForm());
+  const [errors, setErrors] = useState<FormErrors>({});
+
+  // When we arrive with an id, fill the form. Without an id, show a blank form.
+  useEffect(() => {
+    if (editing) {
+      setForm({
+        date: editing.date,
+        steps: String(editing.steps),
+        calories: String(editing.calories),
+        water: String(editing.water),
+      });
+    } else {
+      setForm(emptyForm());
+    }
+    setErrors({});
+  }, [id]);
+
+  const onSave = async () => {
+    const found = validateRecord(form);
+    setErrors(found);
+    if (Object.keys(found).length > 0) return; // stop if there are errors
+
+    const values = {
       date: form.date,
       steps: Number(form.steps),
       calories: Number(form.calories),
       water: Number(form.water),
-    });
-    setForm({ date: todayStr(), steps: '', calories: '', water: '' }); // clear the form
-    Alert.alert('Saved', 'Your record was added.');
+    };
+
+    try {
+      if (editing) {
+        await update({ id: editing.id, ...values });
+      } else {
+        await add(values);
+      }
+      Alert.alert('Saved', editing ? 'Your record was updated.' : 'Your record was added.');
+      setForm(emptyForm());
+      router.setParams({ id: '' }); // leave edit mode
+      router.navigate('/records');
+    } catch (e) {
+      Alert.alert('Error', 'Could not save the record. Please try again.');
+    }
+  };
+
+  const onCancel = () => {
+    setForm(emptyForm());
+    setErrors({});
+    router.setParams({ id: '' });
     router.navigate('/records');
-  } catch (e) {
-    Alert.alert('Error', 'Could not save the record. Please try again.');
-  }
-};
+  };
 
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <Text style={styles.heading}>Add a record</Text>
+        <Text style={styles.heading}>{editing ? 'Edit record' : 'Add a record'}</Text>
 
         <Field
           label="Date (YYYY-MM-DD)"
@@ -104,8 +136,14 @@ const onSave = async () => {
         />
 
         <Pressable style={styles.button} onPress={onSave}>
-          <Text style={styles.buttonText}>Save record</Text>
+          <Text style={styles.buttonText}>{editing ? 'Update record' : 'Save record'}</Text>
         </Pressable>
+
+        {editing ? (
+          <Pressable style={styles.cancel} onPress={onCancel}>
+            <Text style={styles.cancelText}>Cancel</Text>
+          </Pressable>
+        ) : null}
       </ScrollView>
     </SafeAreaView>
   );
@@ -140,4 +178,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   buttonText: { color: colors.background, fontSize: 16, fontWeight: '600' },
+  cancel: { alignItems: 'center', paddingVertical: 10 },
+  cancelText: { color: colors.muted, fontSize: 15 },
 });
