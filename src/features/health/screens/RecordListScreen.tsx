@@ -20,6 +20,7 @@ export default function RecordListScreen() {
   const records = useRecordStore((s) => s.records);
   const load = useRecordStore((s) => s.load);
   const remove = useRecordStore((s) => s.remove);
+  const error = useRecordStore((s) => s.error);
   const [query, setQuery] = useState('');
 
   useEffect(() => {
@@ -50,6 +51,7 @@ export default function RecordListScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <Text style={styles.heading}>Records</Text>
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
       <View style={styles.searchBox}>
         <Ionicons name="search" size={18} color={colors.muted} />
@@ -124,5 +126,6 @@ const styles = StyleSheet.create({
   chip: { borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
   chipText: { fontSize: 12, color: colors.text },
     actions: { flexDirection: 'row', gap: 16 },
+      errorText: { color: '#A32D2D', marginTop: 6 },
     
 });

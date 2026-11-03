@@ -1,3 +1,5 @@
+import { todayStr } from '../../../core/utils/date';
+
 export interface FormInput {
   date: string;
   steps: string;
@@ -7,12 +9,25 @@ export interface FormInput {
 
 export type FormErrors = Partial<Record<keyof FormInput, string>>;
 
+// Checks that the text is a real calendar date, like 2026-10-30
+const isRealDate = (text: string) => {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(text);
+  if (!match) return false;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(year, month - 1, day);
+  // If the day was invalid (like Feb 31), JavaScript rolls over to another month
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+};
+
 export function validateRecord(input: FormInput): FormErrors {
   const errors: FormErrors = {};
 
-  // Date must look like 2026-10-30 and be a real date
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date) || isNaN(Date.parse(input.date))) {
-    errors.date = 'Use the format YYYY-MM-DD';
+  if (!isRealDate(input.date)) {
+    errors.date = 'Enter a real date as YYYY-MM-DD';
+  } else if (input.date > todayStr()) {
+    errors.date = 'The date cannot be in the future';
   }
 
   // Check a number field: required, whole number, not too big
