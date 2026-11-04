@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "healthmate",
+    "name": "HealthMate",
     "slug": "healthmate",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -11,6 +11,7 @@
       "icon": "./assets/expo.icon"
     },
     "android": {
+      "package": "com.chamathka.healthmate",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -38,6 +39,16 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "44282326-9441-45f0-8ec5-049d0ece90c6"
+      }
     }
   }
 }
